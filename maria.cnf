@@ -1,0 +1,35 @@
+#echo to /etc/mysql/my.cnf
+[mysqld]
+bind-address=0.0.0.0
+innodb_strict_mode = 0
+innodb_log_file_size = 10028MB
+
+character-set-client-handshake = FALSE
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+innodb_write_io_threads = 42
+innodb_buffer_pool_size = 150G
+max_allowed_packet = 10G
+max_connections = 1000
+
+innodb_buffer_pool_chunk_size = 256M
+
+innodb_flush_log_at_trx_commit = 2
+innodb_flush_log_at_timeout = 5
+
+innodb_log_buffer_size  = 64M
+innodb_file_per_table   = 1
+innodb_open_files       = 400
+innodb_io_capacity      = 170000
+innodb_io_capacity_max = 200000
+innodb_flush_method     = O_DIRECT
+
+innodb_lock_wait_timeout = 240
+innodb_log_file_size    = 30G
+
+[mysql]
+default-character-set = utf8mb4
+
+[client-server]
+!includedir /etc/mysql/conf.d/
+!includedir /etc/mysql/mariadb.conf.d/

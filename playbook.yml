@@ -1,0 +1,27 @@
+---
+- name: Install and configure MariaDB Galera Cluster
+  hosts: all
+  become: true
+  tasks:
+    - name: Install MariaDB server
+      apt:
+        name: mariadb-server
+        state: present
+
+    - name: Stop MariaDB service
+      service:
+        name: mariadb
+        state: stopped
+
+    - name: Configure MariaDB Galera Cluster
+      template:
+        src: my.cnf.j2
+        dest: /etc/mysql/my.cnf
+      notify:
+        - restart mariadb
+
+  handlers:
+    - name: restart mariadb
+      service:
+        name: mariadb
+        state: restarted

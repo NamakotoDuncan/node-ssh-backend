@@ -1,0 +1,14 @@
+[mysqld]
+bind-address = 0.0.0.0
+binlog_format = row
+default_storage_engine = InnoDB
+innodb_autoinc_lock_mode = 2
+innodb_flush_log_at_trx_commit = 0
+innodb_file_per_table = 1
+innodb_flush_method = O_DIRECT
+innodb_doublewrite = 1
+wsrep_on = ON
+wsrep_provider = /usr/lib/galera-4/libgalera_smm.so
+wsrep_cluster_address = "gcomm://"
+wsrep_node_address = "{{ ansible_host }}"
+wsrep_node_name = "{{ ansible_hostname }}"
