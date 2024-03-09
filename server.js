@@ -1,11 +1,26 @@
 const express = require('express');
 const sqlite3 = require('sqlite3');
+const cors = require('cors');
+const helmet =require('helmet');
 const { Client } = require('ssh2');
+const morgan = require("morgan");
+const compression = require("compression");
 
 const app = express();
 const port = 3000;
 
+app.use(morgan("common"));
+app.use(helmet());
 app.use(express.json());
+app.use(cors(
+  {
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  }
+));
+app.use(compression());
 
 // SQLite database setup
 const db = new sqlite3.Database('clusters.db');
@@ -17,6 +32,19 @@ db.serialize(() => {
   // Create nodes table
   db.run('CREATE TABLE IF NOT EXISTS nodes (id INTEGER PRIMARY KEY AUTOINCREMENT, cluster_id INTEGER, wsrep_node_name TEXT, wsrep_node_address TEXT)');
 });
+
+// Helper function to retrieve multiple rows from the database
+const getAllDbData = (query, params) => {
+  return new Promise((resolve, reject) => {
+    db.all(query, params, (err, rows) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(rows);
+    });
+  });
+};
 
 // API to create a new cluster
 app.post('/create-cluster', (req, res) => {
@@ -36,6 +64,28 @@ app.post('/create-cluster', (req, res) => {
   });
 });
 
+// API to get all clusters
+app.get('/get-cluster', async (req, res) => {
+  // const { name } = req.body;
+  const clusters = await getAllDbData('SELECT * FROM clusters', []);
+  res.json({ clusters });
+  
+});
+
+// API to get a  cluster by id
+app.get('/get-cluster-details/:clusterId', async (req, res) => {
+  const clusterId = req.params.clusterId;
+  const cluster = await getAllDbData('SELECT * FROM clusters where id=?', [clusterId]);
+  res.json({ cluster });
+  
+});
+
+// API to get a new cluster
+app.get('/get-cluster-nodes/:clusterId', async (req, res) => {
+  const clusterId = req.params.clusterId;
+  const nodes = await getAllDbData('SELECT * FROM nodes WHERE cluster_id = ?', [clusterId]);
+  res.json({ nodes });
+});
 // API to add a node to a cluster
 app.post('/add-node/:clusterId', (req, res) => {
   const { wsrepNodeName, wsrepNodeAddress } = req.body;
@@ -187,7 +237,7 @@ function addNode(node,nodes,isPrimary,res) {
     host: nodes[0].wsrep_node_address,
     port: 22,
     username: 'root',
-    password: 'velo@2023!',
+    password: '!swee3rrff',
     // Add privateKey if needed
   });
 }
@@ -227,6 +277,13 @@ function executeCommand(sshClient, commands, index,res) {
     });
   });
 }
+
+// app.use((req, res, next) => {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//   next();
+// });
+
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
